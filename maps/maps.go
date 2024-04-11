@@ -4,6 +4,7 @@ const (
 	WordUnknownErr  = DictionaryErr("the word wasn't found in the dictionary")
 	ErrWordExists   = DictionaryErr("The word already exists in the dictionary")
 	ErrNoWordExists = DictionaryErr("The word does not exist")
+	ErrDelete       = DictionaryErr("Unable to remove a word that doesn't exist in the dictionary")
 )
 
 type DictionaryErr string
@@ -42,6 +43,19 @@ func (d Dictionary) Update(word, definition string) error {
 		return ErrNoWordExists
 	case nil:
 		d[word] = definition
+	default:
+		return nil
+	}
+	return nil
+}
+
+func (d Dictionary) Delete(word string) error {
+	_, err := d.Search(word)
+	switch err {
+	case WordUnknownErr:
+		return ErrDelete
+	case nil:
+		delete(d, word)
 	default:
 		return nil
 	}

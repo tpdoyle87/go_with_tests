@@ -62,7 +62,21 @@ func TestDictionaryUpdate(t *testing.T) {
 
 func TestDictionaryDelete(t *testing.T) {
 	t.Run("Removes a word from the dictionary", func(t *testing.T) {
+		word := "test"
+		definition := "this is a test"
+		d := Dictionary{word: definition}
+		d.Delete(word)
+		_, err := d.Search(word)
+		assertStrings(t, err.Error(), WordUnknownErr.Error(), d)
+	})
 
+	t.Run("Throws error if nothing found to delete", func(t *testing.T) {
+		word := "test"
+		definition := "this is a test"
+		d := Dictionary{word: definition}
+		err := d.Delete("trial")
+		assertError(t, err)
+		assertStrings(t, err.Error(), ErrDelete.Error(), d)
 	})
 }
 

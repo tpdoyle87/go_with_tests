@@ -3,21 +3,6 @@ package pointers
 import "testing"
 
 func TestWallet(t *testing.T) {
-	assertBalance := func(t testing.TB, wallet Wallet, want Bitcoin) {
-		t.Helper()
-		got := wallet.Balance()
-
-		if got != want {
-			t.Errorf("Want %s but got %s", want, got)
-		}
-	}
-
-	assertError := func(t testing.TB, err error) {
-		t.Helper()
-		if err == nil {
-			t.Error("Wanted an error but didn't get one.")
-		}
-	}
 	t.Run("depositing BTC", func(t *testing.T) {
 		wallet := Wallet{}
 		wallet.Deposit(Bitcoin(10))
@@ -26,7 +11,8 @@ func TestWallet(t *testing.T) {
 
 	t.Run("Withdrawing BTC", func(t *testing.T) {
 		wallet := Wallet{balance: Bitcoin(15)}
-		wallet.Withdraw(Bitcoin(5))
+		err := wallet.Withdraw(Bitcoin(5))
+		assertNoError(t, err)
 		assertBalance(t, wallet, Bitcoin(10))
 	})
 
@@ -34,9 +20,37 @@ func TestWallet(t *testing.T) {
 		startingBalance := Bitcoin(20)
 		wallet := Wallet{balance: startingBalance}
 		err := wallet.Withdraw(Bitcoin(100))
-		assertError(t, err)
+		assertError(t, err, ErrInsufficentFunds)
 		assertBalance(t, wallet, startingBalance)
 
 	})
 
+}
+
+// Test helpers
+func assertBalance(t testing.TB, wallet Wallet, want Bitcoin) {
+	t.Helper()
+	got := wallet.Balance()
+
+	if got != want {
+		t.Errorf("Want %s but got %s", want, got)
+	}
+}
+
+func assertError(t testing.TB, got error, want error) {
+	t.Helper()
+	if got == nil {
+		t.Fatal("Wanted an error but didn't get one.")
+	}
+
+	if got.Error() != want.Error() {
+		t.Errorf("got %q want %q", got, want)
+	}
+}
+
+func assertNoError(t testing.TB, got error) {
+	t.Helper()
+	if got != nil {
+		t.Errorf("got an error but didn't want one")
+	}
 }
